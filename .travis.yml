@@ -1,0 +1,34 @@
+addons:
+  sonarcloud:
+    organization: "henryssondaniel-github"
+    token:
+      secure: $SONAR_TOKEN
+before_install:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - echo $secring_password | gpg --passphrase-fd 0 secring.gpg.gpg
+  - chmod +x gradlew
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.sonar/cache
+git:
+  depth: false
+if: tag IS blank
+install: true
+language: java
+matrix:
+  allow_failures:
+    - jdk: openjdk-ea
+  include:
+    - jdk: openjdk11
+      env: FULL_RUN=true
+    - jdk: openjdk12
+      env: FULL_RUN=false
+    - jdk: openjdk-ea
+      env: FULL_RUN=false
+script:
+  - 'if [ "$FULL_RUN" = "false" ]; then ./gradlew clean build; fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ "$FULL_RUN" != "false" ]; then ./gradlew clean build javadoc sonarqube; fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$FULL_RUN" != "false" ]; then ./gradlew clean build sonarqube publish -Psigning.keyId=$keyId -Psigning.password=$password -Psigning.secretKeyRingFile=$secretKeyRingFile -PossrhUsername=$ossrhUsername -PossrhPassword=$ossrhPassword; fi'
