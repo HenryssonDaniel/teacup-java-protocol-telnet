@@ -1,0 +1,144 @@
+plugins {
+    id 'jacoco'
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.sonarqube' version '2.7.1'
+    id 'signing'
+}
+
+group = 'io.github.henryssondaniel.teacup.protocol'
+version = '1.0.0-SNAPSHOT'
+
+sourceSets {
+    intTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+    shouldRunAfter test
+}
+
+task integrationTestReport(type: JacocoReport) {
+    executionData integrationTest
+    sourceSets sourceSets.intTest
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+check.dependsOn integrationTest
+jacocoTestReport.dependsOn integrationTestReport
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+configurations {
+    intTestImplementation.extendsFrom testImplementation
+    intTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    api 'io.github.henryssondaniel.teacup:core:1.1.4-SNAPSHOT'
+    compile 'commons-net:commons-net:3.6'
+    testImplementation 'org.assertj:assertj-core:3.12.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
+    testImplementation 'org.mockito:mockito-core:3.0.0'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name = project.group + ':' + project.name
+                description = 'Teacup client/server Telnet support'
+                url = 'https://github.com/HenryssonDaniel/teacup-java-protocol-telnet'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'Daniel Henrysson'
+                        email = 'henrysson.daniel@gmail.com'
+                        organization = 'Daniel Henrysson AB'
+                        organizationUrl = 'https://github.com/HenryssonDaniel'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/HenryssonDaniel/teacup-java-protocol-telnet.git'
+                    developerConnection = 'scm:git:ssh://github.com/HenryssonDaniel/teacup-java-protocol-telnet.git'
+                    url = 'https://github.com/HenryssonDaniel/teacup-java-protocol-telnet'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def repoUrl = "https://oss.sonatype.org/"
+            def releasesRepoUrl = repoUrl + "service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = repoUrl + "content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+            if (project.hasProperty('ossrhUsername')) {
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "HenryssonDaniel_teacup-java-protocol-telnet"
+    }
+}
