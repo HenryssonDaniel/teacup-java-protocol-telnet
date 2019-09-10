@@ -15,7 +15,9 @@ import javax.net.SocketFactory;
 import org.apache.commons.net.telnet.TelnetClient;
 
 class Simple implements Client {
+  private static final String CONNECT = "Connect";
   private static final Logger LOGGER = Factory.getLogger(Simple.class);
+
   private final TelnetClient telnetClient;
 
   Simple(TelnetClient telnetClient) {
@@ -24,19 +26,19 @@ class Simple implements Client {
 
   @Override
   public void connect(String hostname) throws IOException {
-    LOGGER.log(Level.FINE, "Connect");
+    LOGGER.log(Level.FINE, CONNECT);
     connect(hostname, telnetClient.getDefaultPort());
   }
 
   @Override
   public void connect(String hostname, int port) throws IOException {
-    LOGGER.log(Level.FINE, "Get input stream");
+    LOGGER.log(Level.FINE, CONNECT);
     telnetClient.connect(hostname, port);
   }
 
   @Override
   public void disconnect() throws IOException {
-    LOGGER.log(Level.FINE, "Get input stream");
+    LOGGER.log(Level.FINE, "Disconnect");
     telnetClient.disconnect();
   }
 
