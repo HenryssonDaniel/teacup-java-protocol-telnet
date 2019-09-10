@@ -1,6 +1,8 @@
 package io.github.henryssondaniel.teacup.protocol.telnet;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.SocketException;
 import java.nio.charset.Charset;
@@ -14,22 +16,49 @@ import javax.net.SocketFactory;
  */
 public interface Client {
   /**
-   * Send.
+   * Connect.
    *
-   * @param command the command
-   * @throws IOException if an I/O error occurs
+   * @param hostname the hostname
+   * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  void send(int command) throws IOException;
+  void connect(String hostname) throws IOException;
 
   /**
-   * Send sub-negotiation.
+   * Connect.
    *
-   * @param message the message
-   * @throws IOException if an I/O error occurs
+   * @param hostname the hostname
+   * @param port the port
+   * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  void sendSubNegotiation(int... message) throws IOException;
+  void connect(String hostname, int port) throws IOException;
+
+  /**
+   * Disconnect.
+   *
+   * @throws IOException if an error occurs while disconnecting
+   * @since 1.0
+   */
+  void disconnect() throws IOException;
+
+  /**
+   * Returns the input stream. The stream will be automatically closed in the {@link #disconnect()}
+   * method.
+   *
+   * @return the input stream
+   * @since 1.0
+   */
+  InputStream getInputStream();
+
+  /**
+   * Returns the output stream. The stream will be automatically closed in the {@link #disconnect()}
+   * method.
+   *
+   * @return the output stream
+   * @since 1.0
+   */
+  OutputStream getOutputStream();
 
   /**
    * Sets the charset.

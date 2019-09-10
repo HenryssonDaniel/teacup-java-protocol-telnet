@@ -3,6 +3,8 @@ package io.github.henryssondaniel.teacup.protocol.telnet.client;
 import io.github.henryssondaniel.teacup.core.logging.Factory;
 import io.github.henryssondaniel.teacup.protocol.telnet.Client;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.SocketException;
 import java.nio.charset.Charset;
@@ -21,15 +23,33 @@ class Simple implements Client {
   }
 
   @Override
-  public void send(int command) throws IOException {
-    LOGGER.log(Level.FINE, "Send");
-    telnetClient.sendCommand((byte) command);
+  public void connect(String hostname) throws IOException {
+    LOGGER.log(Level.FINE, "Connect");
+    connect(hostname, telnetClient.getDefaultPort());
   }
 
   @Override
-  public void sendSubNegotiation(int... message) throws IOException {
-    LOGGER.log(Level.FINE, "Send sub negotiation");
-    telnetClient.sendSubnegotiation(message);
+  public void connect(String hostname, int port) throws IOException {
+    LOGGER.log(Level.FINE, "Get input stream");
+    telnetClient.connect(hostname, port);
+  }
+
+  @Override
+  public void disconnect() throws IOException {
+    LOGGER.log(Level.FINE, "Get input stream");
+    telnetClient.disconnect();
+  }
+
+  @Override
+  public InputStream getInputStream() {
+    LOGGER.log(Level.FINE, "Get input stream");
+    return telnetClient.getInputStream();
+  }
+
+  @Override
+  public OutputStream getOutputStream() {
+    LOGGER.log(Level.FINE, "Get output stream");
+    return telnetClient.getOutputStream();
   }
 
   @Override
