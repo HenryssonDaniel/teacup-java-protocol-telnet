@@ -135,14 +135,6 @@ class SimpleTest {
   }
 
   @Test
-  void setReaderThread() {
-    client.setReaderThread(true);
-
-    verify(telnetClient).setReaderThread(true);
-    verifyNoMoreInteractions(telnetClient);
-  }
-
-  @Test
   void setReceiveBufferSize() throws SocketException {
     client.setReceiveBufferSize(1);
 

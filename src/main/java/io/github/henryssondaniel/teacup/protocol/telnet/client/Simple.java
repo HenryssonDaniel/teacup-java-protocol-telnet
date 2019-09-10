@@ -89,12 +89,6 @@ class Simple implements Client {
   }
 
   @Override
-  public void setReaderThread(boolean readerThread) {
-    LOGGER.log(Level.FINE, "Set reader thread");
-    telnetClient.setReaderThread(readerThread);
-  }
-
-  @Override
   public void setReceiveBufferSize(int receiveBufferSize) throws SocketException {
     LOGGER.log(Level.FINE, "Set received buffer size");
     telnetClient.setReceiveBufferSize(receiveBufferSize);

@@ -109,14 +109,6 @@ public interface Client {
   void setProxy(Proxy proxy);
 
   /**
-   * Sets whether to enable the reader thread.
-   *
-   * @param readerThread whether to enable the reader thread
-   * @since 1.0
-   */
-  void setReaderThread(boolean readerThread);
-
-  /**
    * Sets the received buffer size.
    *
    * @param receiveBufferSize the received buffer size
