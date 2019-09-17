@@ -37,12 +37,9 @@ class Simple implements Client {
   public Supplier<String> connect(String hostname, int port) throws IOException {
     LOGGER.log(Level.FINE, CONNECT);
 
-    if (responseSupplier == null) {
-      telnetClient.connect(hostname, port);
-
-      responseSupplier = new ResponseSupplierImpl(telnetClient.getInputStream());
-      responseSupplier.start();
-    } else
+    if (responseSupplier == null)
+      responseSupplier = createResponseSupplier(hostname, port, telnetClient);
+    else
       LOGGER.log(
           Level.WARNING,
           "The client is already connected. Please disconnect before connect again.");
@@ -64,13 +61,13 @@ class Simple implements Client {
 
   @Override
   public void send(String command) throws IOException {
-    LOGGER.log(Level.INFO, "Request: " + command);
+    LOGGER.log(Level.INFO, () -> "Request: " + command);
     sendCommand(command.getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
   public void send(byte... commands) throws IOException {
-    LOGGER.log(Level.INFO, "Request: " + Arrays.toString(commands));
+    LOGGER.log(Level.INFO, () -> "Request: " + Arrays.toString(commands));
     sendCommand(commands);
   }
 
@@ -150,6 +147,16 @@ class Simple implements Client {
   public void setTcpNoDelay(boolean tcpNoDelay) throws SocketException {
     LOGGER.log(Level.FINE, "Set TCP no delay");
     telnetClient.setTcpNoDelay(tcpNoDelay);
+  }
+
+  private static ResponseSupplier createResponseSupplier(
+      String hostname, int port, TelnetClient telnetClient) throws IOException {
+    telnetClient.connect(hostname, port);
+
+    ResponseSupplier supplier = new ResponseSupplierImpl(telnetClient.getInputStream());
+    supplier.start();
+
+    return supplier;
   }
 
   private void sendCommand(byte... commands) throws IOException {

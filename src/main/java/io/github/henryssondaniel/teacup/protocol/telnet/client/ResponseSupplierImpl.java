@@ -69,6 +69,7 @@ class ResponseSupplierImpl implements ResponseSupplier {
         }
       } catch (InterruptedException interruptedException) {
         LOGGER.log(Level.SEVERE, "The thread got interrupted", interruptedException);
+        Thread.currentThread().interrupt();
       }
 
     return currentResponse;
