@@ -3,11 +3,12 @@ package io.github.henryssondaniel.teacup.protocol.telnet.client;
 import io.github.henryssondaniel.teacup.core.logging.Factory;
 import io.github.henryssondaniel.teacup.protocol.telnet.Client;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.SocketException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ServerSocketFactory;
@@ -20,38 +21,57 @@ class Simple implements Client {
 
   private final TelnetClient telnetClient;
 
+  private ResponseSupplier responseSupplier;
+
   Simple(TelnetClient telnetClient) {
     this.telnetClient = telnetClient;
   }
 
   @Override
-  public void connect(String hostname) throws IOException {
+  public Supplier<String> connect(String hostname) throws IOException {
     LOGGER.log(Level.FINE, CONNECT);
-    connect(hostname, telnetClient.getDefaultPort());
+    return connect(hostname, telnetClient.getDefaultPort());
   }
 
   @Override
-  public void connect(String hostname, int port) throws IOException {
+  public Supplier<String> connect(String hostname, int port) throws IOException {
     LOGGER.log(Level.FINE, CONNECT);
-    telnetClient.connect(hostname, port);
+
+    if (responseSupplier == null) {
+      telnetClient.connect(hostname, port);
+
+      responseSupplier = new ResponseSupplierImpl(telnetClient.getInputStream());
+      responseSupplier.start();
+    } else
+      LOGGER.log(
+          Level.WARNING,
+          "The client is already connected. Please disconnect before connect again.");
+
+    return responseSupplier;
   }
 
   @Override
   public void disconnect() throws IOException {
     LOGGER.log(Level.FINE, "Disconnect");
+
+    if (responseSupplier != null) {
+      responseSupplier.interrupt();
+      responseSupplier = null;
+    }
+
     telnetClient.disconnect();
   }
 
   @Override
-  public InputStream getInputStream() {
-    LOGGER.log(Level.FINE, "Get input stream");
-    return telnetClient.getInputStream();
+  public void send(String command) throws IOException {
+    LOGGER.log(Level.INFO, "Request: " + command);
+    sendCommand(command.getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
-  public OutputStream getOutputStream() {
-    LOGGER.log(Level.FINE, "Get output stream");
-    return telnetClient.getOutputStream();
+  public void send(byte... commands) throws IOException {
+    LOGGER.log(Level.INFO, "Request: " + Arrays.toString(commands));
+    sendCommand(commands);
   }
 
   @Override
@@ -130,5 +150,11 @@ class Simple implements Client {
   public void setTcpNoDelay(boolean tcpNoDelay) throws SocketException {
     LOGGER.log(Level.FINE, "Set TCP no delay");
     telnetClient.setTcpNoDelay(tcpNoDelay);
+  }
+
+  private void sendCommand(byte... commands) throws IOException {
+    var outputStream = telnetClient.getOutputStream();
+    outputStream.write(commands);
+    outputStream.flush();
   }
 }

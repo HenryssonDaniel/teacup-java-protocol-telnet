@@ -1,11 +1,10 @@
 package io.github.henryssondaniel.teacup.protocol.telnet;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.SocketException;
 import java.nio.charset.Charset;
+import java.util.function.Supplier;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
@@ -19,20 +18,22 @@ public interface Client {
    * Connect.
    *
    * @param hostname the hostname
+   * @return the response supplier
    * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  void connect(String hostname) throws IOException;
+  Supplier<String> connect(String hostname) throws IOException;
 
   /**
    * Connect.
    *
    * @param hostname the hostname
    * @param port the port
+   * @return the response supplier
    * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  void connect(String hostname, int port) throws IOException;
+  Supplier<String> connect(String hostname, int port) throws IOException;
 
   /**
    * Disconnect.
@@ -43,22 +44,23 @@ public interface Client {
   void disconnect() throws IOException;
 
   /**
-   * Returns the input stream. The stream will be automatically closed in the {@link #disconnect()}
-   * method.
+   * Send commands. The byte array will be logged as a byte array and not a String. If a String is
+   * desired, use {@link #send(String)} instead.
    *
-   * @return the input stream
+   * @param commands the commands
+   * @throws IOException if an error occurs while sending
    * @since 1.0
    */
-  InputStream getInputStream();
+  void send(byte... commands) throws IOException;
 
   /**
-   * Returns the output stream. The stream will be automatically closed in the {@link #disconnect()}
-   * method.
+   * Send command.
    *
-   * @return the output stream
+   * @param command the command
+   * @throws IOException if an error occurs while sending
    * @since 1.0
    */
-  OutputStream getOutputStream();
+  void send(String command) throws IOException;
 
   /**
    * Sets the charset.

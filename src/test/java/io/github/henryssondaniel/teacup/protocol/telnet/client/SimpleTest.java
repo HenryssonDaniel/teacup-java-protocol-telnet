@@ -4,82 +4,90 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import io.github.henryssondaniel.teacup.protocol.telnet.Client;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Proxy;
 import java.net.SocketException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import org.apache.commons.net.telnet.TelnetClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SimpleTest {
+  private static final String COMMAND = "command";
   private static final String HOSTNAME = "hostname";
 
+  private final OutputStream outputStream = mock(OutputStream.class);
   private final TelnetClient telnetClient = mock(TelnetClient.class);
   private final Client client = new Simple(telnetClient);
 
+  @BeforeEach
+  void beforeEach() {
+    when(telnetClient.getOutputStream()).thenReturn(outputStream);
+  }
+
   @Test
   void connect() throws IOException {
-    client.connect(HOSTNAME);
+    assertThat(client.connect(HOSTNAME)).isExactlyInstanceOf(ResponseSupplierImpl.class);
 
-    verify(telnetClient).connect(HOSTNAME, 0);
-    verify(telnetClient).getDefaultPort();
+    verifyConnect();
+    verifyNoMoreInteractions(telnetClient);
+  }
+
+  @Test
+  void connectOnlyOnce() throws IOException {
+    assertThat(client.connect(HOSTNAME)).isSameAs(client.connect(HOSTNAME, 1));
+
+    verifyConnect();
     verifyNoMoreInteractions(telnetClient);
   }
 
   @Test
   void connectWithPort() throws IOException {
-    client.connect(HOSTNAME, 1);
+    assertThat(client.connect(HOSTNAME, 1)).isExactlyInstanceOf(ResponseSupplierImpl.class);
 
     verify(telnetClient).connect(HOSTNAME, 1);
+    verify(telnetClient).getInputStream();
     verifyNoMoreInteractions(telnetClient);
   }
 
   @Test
   void disconnect() throws IOException {
     client.disconnect();
-
-    verify(telnetClient).disconnect();
-    verifyNoMoreInteractions(telnetClient);
+    verifyDisconnect();
   }
 
   @Test
-  void getInputStream() throws IOException {
-    var inputStream = mock(InputStream.class);
+  void disconnectWhenConnected() throws IOException {
+    client.connect(HOSTNAME);
+    client.disconnect();
 
-    try (var stream = telnetClient.getInputStream()) {
-      when(stream).thenReturn(inputStream);
-    }
-
-    try (var stream = client.getInputStream()) {
-      verifyInputStream(stream);
-      assertThat(stream).isSameAs(inputStream);
-    }
-
-    verifyNoMoreInteractions(telnetClient);
+    verifyConnect();
+    verifyDisconnect();
   }
 
   @Test
-  void getOutputStream() throws IOException {
-    var outputStream = mock(OutputStream.class);
+  void send() throws IOException {
+    client.send(COMMAND);
 
-    try (var stream = telnetClient.getOutputStream()) {
-      when(stream).thenReturn(outputStream);
-    }
+    verify(outputStream).write(COMMAND.getBytes(StandardCharsets.UTF_8));
+    verifySend();
+  }
 
-    try (var stream = client.getOutputStream()) {
-      verifyOutputStream(stream);
-      assertThat(stream).isSameAs(outputStream);
-    }
+  @Test
+  void sendBytes() throws IOException {
+    var bytes = COMMAND.getBytes(StandardCharsets.UTF_8);
 
-    verifyNoMoreInteractions(telnetClient);
+    client.send(bytes);
+
+    verify(outputStream).write(bytes);
+    verifySend();
   }
 
   @Test
@@ -194,15 +202,22 @@ class SimpleTest {
     verifyNoMoreInteractions(telnetClient);
   }
 
-  private void verifyInputStream(InputStream inputStream) throws IOException {
-    try (var ignore = verify(telnetClient).getInputStream()) {
-      verifyZeroInteractions(inputStream);
-    }
+  private void verifyConnect() throws IOException {
+    verify(telnetClient).connect(HOSTNAME, 0);
+    verify(telnetClient).getDefaultPort();
+    verify(telnetClient).getInputStream();
   }
 
-  private void verifyOutputStream(OutputStream outputStream) throws IOException {
-    try (var ignore = verify(telnetClient).getOutputStream()) {
-      verifyZeroInteractions(outputStream);
-    }
+  private void verifyDisconnect() throws IOException {
+    verify(telnetClient).disconnect();
+    verifyNoMoreInteractions(telnetClient);
+  }
+
+  private void verifySend() throws IOException {
+    verify(telnetClient).getOutputStream();
+    verifyNoMoreInteractions(telnetClient);
+
+    verify(outputStream).flush();
+    verifyNoMoreInteractions(outputStream);
   }
 }
