@@ -26,6 +26,8 @@ matrix:
       env: FULL_RUN=true
     - jdk: openjdk12
       env: FULL_RUN=false
+    - jdk: openjdk13
+      env: FULL_RUN=false
     - jdk: openjdk-ea
       env: FULL_RUN=false
 script:
