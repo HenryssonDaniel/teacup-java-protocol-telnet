@@ -18,8 +18,6 @@ public final class ShellImpl implements Shell {
   private static final Logger LOGGER =
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(ShellImpl.class);
 
-  private ShellImpl() {}
-
   @Override
   public void connectionIdle(ConnectionEvent connectionEvent) {
     LOGGER.log(Level.FINE, "Connection connection idle");
@@ -41,17 +39,6 @@ public final class ShellImpl implements Shell {
     connectionEvent.getSource().close();
   }
 
-  /**
-   * Creates a new shell object. Required by the TelnetD framework.
-   *
-   * @return the shell
-   * @since 1.0
-   */
-  public static Shell createShell() {
-    LOGGER.log(Level.FINE, "Create shell");
-    return new ShellImpl();
-  }
-
   @Override
   public void run(Connection connection) {
     try {
@@ -67,7 +54,7 @@ public final class ShellImpl implements Shell {
   private static boolean isIncomplete(BasicTerminalIO basicTerminalIO) throws IOException {
     var readByte = basicTerminalIO.read();
 
-    LOGGER.log(Level.INFO, new String(new byte[] {(byte) readByte}, StandardCharsets.UTF_8));
+    LOGGER.log(Level.INFO, () -> new String(new byte[] {(byte) readByte}, StandardCharsets.UTF_8));
 
     var incomplete = true;
 

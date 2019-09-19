@@ -45,7 +45,6 @@ class FactoryTest {
     var properties = mock(Properties.class);
     assertThat(Factory.createSimpleServer(properties)).isExactlyInstanceOf(Simple.class);
 
-    verify(properties).getProperty("shells");
     verify(properties).getProperty("terminals");
     verify(properties).getProperty("terminals.windoof");
     verifyNoMoreInteractions(properties);

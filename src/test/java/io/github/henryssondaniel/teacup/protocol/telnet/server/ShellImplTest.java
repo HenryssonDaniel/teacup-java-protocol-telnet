@@ -19,7 +19,7 @@ class ShellImplTest {
   private final BasicTerminalIO basicTerminalIO = mock(BasicTerminalIO.class);
   private final Connection connection = mock(Connection.class);
   private final ConnectionEvent connectionEvent = mock(ConnectionEvent.class);
-  private final Shell shell = ShellImpl.createShell();
+  private final Shell shell = new ShellImpl();
 
   @BeforeEach
   void beforeEach() {

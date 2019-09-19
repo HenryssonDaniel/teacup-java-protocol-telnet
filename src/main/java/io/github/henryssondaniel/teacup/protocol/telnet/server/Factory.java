@@ -2,6 +2,7 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import io.github.henryssondaniel.teacup.protocol.telnet.SimpleServer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -10,6 +11,7 @@ import net.wimpi.telnetd.BootException;
 import net.wimpi.telnetd.TelnetD;
 import net.wimpi.telnetd.io.terminal.TerminalManager;
 import net.wimpi.telnetd.net.PortListener;
+import net.wimpi.telnetd.shell.Shell;
 import net.wimpi.telnetd.shell.ShellManager;
 import net.wimpi.telnetd.util.StringUtil;
 
@@ -76,13 +78,16 @@ public enum Factory {
     var telnetD = TelnetD.createTelnetD();
 
     try {
-      telnetD.setShellManager(ShellManager.createShellManager(properties));
+      var hashMap = new HashMap<String, Shell>(1);
+      hashMap.put("shell", new ShellImpl());
+
+      telnetD.setShellManager(ShellManager.createShellManager(hashMap));
       TerminalManager.createTerminalManager(properties);
       setListeners(properties, telnetD);
     } catch (BootException bootException) {
       LOGGER.log(
           Level.SEVERE,
-          "The server was not properly initialized. The server might not behave as expected.",
+          "The server was not properly initialized and might not behave as expected.",
           bootException);
     }
 
@@ -98,9 +103,6 @@ public enum Factory {
     var properties = new Properties();
 
     properties.setProperty("listeners", getListeners(listeners, properties));
-    properties.setProperty(
-        "shell.shell.class", "io.github.henryssondaniel.teacup.protocol.telnet.server.ShellImpl");
-    properties.setProperty("shells", "shell");
     properties.setProperty("term.vt100.class", "net.wimpi.telnetd.io.terminal.vt100");
     properties.setProperty("term.vt100.aliases", "default");
     properties.setProperty("terminals", "vt100");
