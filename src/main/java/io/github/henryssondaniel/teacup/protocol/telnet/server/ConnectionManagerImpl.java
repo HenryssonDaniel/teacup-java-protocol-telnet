@@ -125,6 +125,7 @@ final class ConnectionManagerImpl extends ConnectionManager {
       } catch (InterruptedException interruptedException) {
         LOGGER.log(Level.SEVERE, "The connection manager got interrupted", interruptedException);
         running = false;
+        Thread.currentThread().interrupt();
       }
   }
 
@@ -146,6 +147,7 @@ final class ConnectionManagerImpl extends ConnectionManager {
       if (thread != null) thread.join();
     } catch (InterruptedException interruptedException) {
       LOGGER.log(Level.SEVERE, "Could not stop the connection manager", interruptedException);
+      Thread.currentThread().interrupt();
     }
 
     synchronized (openConnections) {
