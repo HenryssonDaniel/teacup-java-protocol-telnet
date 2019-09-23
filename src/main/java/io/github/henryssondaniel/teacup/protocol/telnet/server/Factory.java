@@ -2,18 +2,18 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import io.github.henryssondaniel.teacup.protocol.telnet.SimpleServer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.wimpi.telnetd.BootException;
 import net.wimpi.telnetd.TelnetD;
 import net.wimpi.telnetd.io.terminal.TerminalManager;
+import net.wimpi.telnetd.io.terminal.vt100;
+import net.wimpi.telnetd.net.ConnectionManager;
 import net.wimpi.telnetd.net.PortListener;
 import net.wimpi.telnetd.shell.Shell;
-import net.wimpi.telnetd.shell.ShellManager;
-import net.wimpi.telnetd.util.StringUtil;
 
 /**
  * Factory class for the server package.
@@ -63,27 +63,23 @@ public enum Factory {
   /**
    * Creates a new {@link SimpleServer}.
    *
-   * @param listeners the listeners
+   * @param listener the listener
    * @return the simple server
    * @since 1.0
    */
-  public static SimpleServer createSimpleServer(Iterable<? extends Listener> listeners) {
+  public static SimpleServer createSimpleServer(Listener listener) {
     LOGGER.log(Level.FINE, "Create simple server");
-    return createSimpleServer(createProperties(listeners));
+    return createSimpleServer(listener, "default");
   }
 
-  static SimpleServer createSimpleServer(Properties properties) {
-    LOGGER.log(Level.FINE, "Create simple server");
+  static SimpleServer createSimpleServer(Listener listener, String name) {
+    Handler handler = new HandlerImpl();
 
     var telnetD = TelnetD.createTelnetD();
+    telnetD.setListeners(createPortListeners(listener, handler));
 
     try {
-      var hashMap = new HashMap<String, Shell>(1);
-      hashMap.put("shell", new ShellImpl());
-
-      telnetD.setShellManager(ShellManager.createShellManager(hashMap));
-      TerminalManager.createTerminalManager(properties);
-      setListeners(properties, telnetD);
+      TerminalManager.createTerminalManager(Collections.singletonMap(name, new vt100()), false);
     } catch (BootException bootException) {
       LOGGER.log(
           Level.SEVERE,
@@ -91,60 +87,22 @@ public enum Factory {
           bootException);
     }
 
-    return new Simple(telnetD);
+    return new Simple(handler, telnetD);
   }
 
-  private static PortListener createPortListener(String name, Properties properties)
-      throws BootException {
-    return PortListener.createPortListener(name, properties);
+  private static ConnectionManager createConnectionManager(Listener listener, Shell handler) {
+    ConnectionManager connectionManager =
+        new ConnectionManagerImpl(
+            new Stack<>(), listener, Collections.synchronizedList(new ArrayList<>(100)), handler);
+    connectionManager.start();
+
+    return connectionManager;
   }
 
-  private static Properties createProperties(Iterable<? extends Listener> listeners) {
-    var properties = new Properties();
+  private static List<PortListener> createPortListeners(Listener listener, Shell shell) {
+    var portListener = new PortListener("listener", listener.getPort(), listener.getBacklog());
+    portListener.setConnectionManager(createConnectionManager(listener, shell));
 
-    properties.setProperty("listeners", getListeners(listeners, properties));
-    properties.setProperty("term.vt100.class", "net.wimpi.telnetd.io.terminal.vt100");
-    properties.setProperty("term.vt100.aliases", "default");
-    properties.setProperty("terminals", "vt100");
-
-    return properties;
-  }
-
-  private static String getListeners(
-      Iterable<? extends Listener> listeners, Properties properties) {
-    var listenersString = new StringBuilder(0);
-
-    var i = 0;
-    for (Listener listener : listeners) {
-      listenersString.append(listenersString.length() == 0 ? "" : ",").append(i);
-
-      properties.setProperty(i + ".floodprotection", String.valueOf(listener.getBacklog()));
-      properties.setProperty(
-          i + ".housekeepinginterval", String.valueOf(listener.getHousekeepingInterval()));
-      properties.setProperty(i + ".loginshell", "shell");
-      properties.setProperty(i + ".maxcon", String.valueOf(listener.getMaxConnections()));
-      properties.setProperty(i + ".port", String.valueOf(listener.getPort()));
-      properties.setProperty(i + ".time_to_timedout", String.valueOf(listener.getTimeout()));
-      properties.setProperty(i + ".time_to_warning", "0");
-
-      i++;
-    }
-
-    return listenersString.toString();
-  }
-
-  private static void setListeners(Properties properties, TelnetD telnetD) throws BootException {
-    var listeners = StringUtil.split(properties.getProperty("listeners"), ",");
-
-    var size = listeners.length;
-    List<PortListener> portListeners = new ArrayList<>(listeners.length);
-
-    var i = 0;
-    while (i < size) {
-      portListeners.add(createPortListener(String.valueOf(i), properties));
-      i++;
-    }
-
-    telnetD.setListeners(portListeners);
+    return Collections.singletonList(portListener);
   }
 }

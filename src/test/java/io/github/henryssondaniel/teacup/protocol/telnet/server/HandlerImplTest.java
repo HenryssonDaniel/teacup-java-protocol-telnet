@@ -1,5 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -11,15 +12,21 @@ import java.io.IOException;
 import net.wimpi.telnetd.io.BasicTerminalIO;
 import net.wimpi.telnetd.net.Connection;
 import net.wimpi.telnetd.net.ConnectionEvent;
-import net.wimpi.telnetd.shell.Shell;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ShellImplTest {
+class HandlerImplTest {
   private final BasicTerminalIO basicTerminalIO = mock(BasicTerminalIO.class);
   private final Connection connection = mock(Connection.class);
   private final ConnectionEvent connectionEvent = mock(ConnectionEvent.class);
-  private final Shell shell = new ShellImpl();
+  private final Handler handler = new HandlerImpl();
+  private final TimeoutSupplier timeoutSupplier = mock(TimeoutSupplier.class);
+
+  @Test
+  void addAndGetTimeoutSuppliers() {
+    handler.addTimeoutSupplier(timeoutSupplier);
+    assertThat(handler.getTimeoutSuppliers()).containsExactly(timeoutSupplier);
+  }
 
   @BeforeEach
   void beforeEach() {
@@ -28,19 +35,19 @@ class ShellImplTest {
 
   @Test
   void connectionIdle() {
-    shell.connectionIdle(connectionEvent);
+    handler.connectionIdle(connectionEvent);
     verifyZeroInteractions(connectionEvent);
   }
 
   @Test
   void connectionLogoutRequest() {
-    shell.connectionLogoutRequest(connectionEvent);
+    handler.connectionLogoutRequest(connectionEvent);
     verifyZeroInteractions(connectionEvent);
   }
 
   @Test
   void connectionSentBreak() {
-    shell.connectionSentBreak(connectionEvent);
+    handler.connectionSentBreak(connectionEvent);
     verifyZeroInteractions(connectionEvent);
   }
 
@@ -48,7 +55,7 @@ class ShellImplTest {
   void connectionTimedOut() {
     when(connectionEvent.getSource()).thenReturn(connection);
 
-    shell.connectionTimedOut(connectionEvent);
+    handler.connectionTimedOut(connectionEvent);
 
     verify(connection).close();
     verifyNoMoreInteractions(connection);
@@ -58,14 +65,50 @@ class ShellImplTest {
   }
 
   @Test
+  void getReply() {
+    assertThat(handler.getReply()).isNull();
+  }
+
+  @Test
+  void getTimeoutSuppliers() {
+    assertThat(handler.getTimeoutSuppliers()).isEmpty();
+  }
+
+  @Test
+  void removeAndGetTimeoutSupplier() {
+    handler.removeTimeoutSupplier(timeoutSupplier);
+    assertThat(handler.getTimeoutSuppliers()).isEmpty();
+  }
+
+  @Test
   void run() throws IOException {
     when(basicTerminalIO.read()).thenReturn(1, -1);
 
-    shell.run(connection);
+    var reply = mock(Reply.class);
+    when(reply.getData()).thenReturn(new byte[] {(byte) 1});
+
+    handler.setReply(reply);
+    handler.run(connection);
 
     verify(basicTerminalIO).flush();
     verify(basicTerminalIO, times(2)).read();
-    verify(basicTerminalIO).write("1");
+    verify(basicTerminalIO).write((byte) 1);
+    verifyNoMoreInteractions(basicTerminalIO);
+
+    verify(connection).getTerminalIO();
+    verifyNoMoreInteractions(connection);
+
+    verify(reply).getData();
+    verifyNoMoreInteractions(reply);
+  }
+
+  @Test
+  void runWhenException() throws IOException {
+    when(basicTerminalIO.read()).thenThrow(new IOException("test"));
+
+    handler.run(connection);
+
+    verify(basicTerminalIO).read();
     verifyNoMoreInteractions(basicTerminalIO);
 
     verify(connection).getTerminalIO();
@@ -73,15 +116,10 @@ class ShellImplTest {
   }
 
   @Test
-  void runWhenException() throws IOException {
-    when(basicTerminalIO.read()).thenThrow(new IOException("test"));
+  void setAndGetReply() {
+    var reply = mock(Reply.class);
+    handler.setReply(reply);
 
-    shell.run(connection);
-
-    verify(basicTerminalIO).read();
-    verifyNoMoreInteractions(basicTerminalIO);
-
-    verify(connection).getTerminalIO();
-    verifyNoMoreInteractions(connection);
+    assertThat(handler.getReply()).isSameAs(reply);
   }
 }
