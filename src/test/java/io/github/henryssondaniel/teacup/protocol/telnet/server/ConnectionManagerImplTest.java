@@ -30,15 +30,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ConnectionManagerImplTest {
-  private static final long MILLIS = 100000L;
-
   private final Connection connection = mock(Connection.class);
   private final ConnectionData connectionData = mock(ConnectionData.class);
   private final Listener listener = mock(Listener.class);
   private final Object lock = new Object();
+  private final Object secondLock = new Object();
   private final Shell shell = mock(Shell.class);
   private final Socket socket = mock(Socket.class);
 
+  private boolean secondWaiting = true;
   private boolean waiting = true;
 
   @BeforeEach
@@ -158,16 +158,7 @@ class ConnectionManagerImplTest {
 
   @Test
   void runWhenInterrupted() throws InterruptedException {
-    doAnswer(
-            invocation -> {
-              stopWait();
-
-              Thread.sleep(MILLIS);
-
-              return false;
-            })
-        .when(connection)
-        .isActive();
+    doAnswer(invocation -> isActive()).when(connection).isActive();
 
     ConnectionManager connectionManager =
         new ConnectionManagerImpl(
@@ -182,6 +173,11 @@ class ConnectionManagerImplTest {
     verifyNoMoreInteractions(connection);
 
     verifyListener();
+
+    synchronized (secondLock) {
+      secondWaiting = false;
+      secondLock.notifyAll();
+    }
   }
 
   @Test
@@ -242,14 +238,7 @@ class ConnectionManagerImplTest {
 
   @Test
   void stopWhenInterrupted() throws InterruptedException {
-    doAnswer(
-            invocation -> {
-              stopWait();
-              Thread.sleep(MILLIS);
-              return false;
-            })
-        .when(connection)
-        .isActive();
+    doAnswer(invocation -> isActive()).when(connection).isActive();
 
     List<Connection> connections = new ArrayList<>(1);
     connections.add(connection);
@@ -270,6 +259,11 @@ class ConnectionManagerImplTest {
     verifyNoMoreInteractions(connection);
 
     verifyListener();
+
+    synchronized (secondLock) {
+      waiting = false;
+      secondLock.notifyAll();
+    }
   }
 
   private void interruptThread(Thread thread) throws InterruptedException {
@@ -278,6 +272,16 @@ class ConnectionManagerImplTest {
 
       thread.interrupt();
     }
+  }
+
+  private Object isActive() throws InterruptedException {
+    stopWait();
+
+    synchronized (secondLock) {
+      while (secondWaiting) secondLock.wait(1L);
+    }
+
+    return false;
   }
 
   private void makeConnection(ConnectionManager connectionManager, OutputStream outputStream)
