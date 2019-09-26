@@ -21,12 +21,7 @@ class ConnectionImpl extends Connection {
     LOGGER.log(Level.FINE, "Run");
 
     try {
-      var done = false;
-
-      do {
-        shell.run(this);
-        if (!isActive()) done = true;
-      } while (done);
+      shell.run(this);
     } finally {
       close();
     }

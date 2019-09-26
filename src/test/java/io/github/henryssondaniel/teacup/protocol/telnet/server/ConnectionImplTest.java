@@ -47,13 +47,10 @@ class ConnectionImplTest {
   void run() throws InterruptedException {
     doAnswer(invocation -> createAnswer()).when(shell).run(connection);
 
-    var thread = new Thread(() -> connection.start());
-    thread.start();
+    connection.start();
 
     synchronized (lock) {
       while (waiting) lock.wait(1L);
-
-      thread.interrupt();
     }
 
     verify(shell).run(connection);
