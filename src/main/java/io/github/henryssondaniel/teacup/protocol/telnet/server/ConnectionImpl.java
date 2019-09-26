@@ -11,8 +11,8 @@ class ConnectionImpl extends Connection {
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(ConnectionImpl.class);
   private final Shell shell;
 
-  ConnectionImpl(ConnectionData connectionData, Shell shell, ThreadGroup threadGroup) {
-    super(threadGroup, connectionData);
+  ConnectionImpl(ConnectionData connectionData, String name, Shell shell) {
+    super(new ThreadGroup(name), connectionData);
     this.shell = shell;
   }
 

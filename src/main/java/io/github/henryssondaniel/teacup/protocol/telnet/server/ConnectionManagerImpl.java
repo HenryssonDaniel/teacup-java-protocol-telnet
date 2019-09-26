@@ -22,8 +22,6 @@ final class ConnectionManagerImpl extends ConnectionManager {
   private final Stack<? super Connection> closedConnections;
   private final List<Connection> openConnections;
   private final Shell shell;
-  private final ThreadGroup threadGroup =
-      new ThreadGroup(String.format("%sConnections", toString()));
 
   private boolean stopped;
   private Thread thread;
@@ -88,7 +86,8 @@ final class ConnectionManagerImpl extends ConnectionManager {
     connectionData.setLoginShell(getLoginShell());
 
     if (openConnections.size() < getMaxConnections()) {
-      Connection connection = new ConnectionImpl(connectionData, shell, threadGroup);
+      Connection connection =
+          new ConnectionImpl(connectionData, String.format("%sConnections", toString()), shell);
 
       synchronized (openConnections) {
         openConnections.add(connection);

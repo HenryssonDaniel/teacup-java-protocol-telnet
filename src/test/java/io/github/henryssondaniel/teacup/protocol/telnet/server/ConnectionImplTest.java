@@ -30,7 +30,6 @@ class ConnectionImplTest {
   @BeforeEach
   void beforeEach() throws BootException, IOException {
     var socket = mock(Socket.class);
-    var threadGroup = mock(ThreadGroup.class);
     TerminalManager.createTerminalManager(Collections.singletonMap("default", new vt100()), false);
 
     when(connectionData.getNegotiatedTerminalType()).thenReturn("default");
@@ -40,7 +39,7 @@ class ConnectionImplTest {
     }
 
     try (var outputStream = OutputStream.nullOutputStream()) {
-      createConnection(socket, threadGroup, outputStream);
+      createConnection(socket, outputStream);
     }
   }
 
@@ -70,12 +69,11 @@ class ConnectionImplTest {
     return "";
   }
 
-  private void createConnection(Socket socket, ThreadGroup threadGroup, OutputStream outputStream)
-      throws IOException {
+  private void createConnection(Socket socket, OutputStream outputStream) throws IOException {
     try (var stream = socket.getOutputStream()) {
       when(stream).thenReturn(outputStream);
 
-      connection = new ConnectionImpl(connectionData, shell, threadGroup);
+      connection = new ConnectionImpl(connectionData, "name", shell);
     }
   }
 }
