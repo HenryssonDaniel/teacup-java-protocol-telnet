@@ -2,10 +2,11 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.wimpi.telnetd.net.Connection;
@@ -19,7 +20,7 @@ final class ConnectionManagerImpl extends ConnectionManager {
   private static final Logger LOGGER =
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(ConnectionManagerImpl.class);
 
-  private final Stack<? super Connection> closedConnections;
+  private final Deque<? super Connection> closedConnections;
   private final List<Connection> openConnections;
   private final Shell shell;
 
@@ -40,9 +41,7 @@ final class ConnectionManagerImpl extends ConnectionManager {
         "handler",
         false);
 
-    this.closedConnections = new Stack<>();
-    this.closedConnections.addAll(closedConnections);
-
+    this.closedConnections = new ArrayDeque<>(closedConnections);
     this.openConnections = Collections.synchronizedList(openConnections);
     this.shell = shell;
   }
