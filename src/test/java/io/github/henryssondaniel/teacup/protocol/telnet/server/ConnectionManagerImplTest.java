@@ -174,10 +174,7 @@ class ConnectionManagerImplTest {
 
     verifyListener();
 
-    synchronized (secondLock) {
-      secondWaiting = false;
-      secondLock.notifyAll();
-    }
+    notifyLock();
   }
 
   @Test
@@ -206,6 +203,14 @@ class ConnectionManagerImplTest {
             invocation -> {
               stopWait();
               return true;
+            })
+        .thenAnswer(
+            invocation -> {
+              synchronized (secondLock) {
+                while (secondWaiting) secondLock.wait(1L);
+              }
+
+              return false;
             });
     when(connection.getConnectionData()).thenReturn(connectionData);
 
@@ -234,6 +239,8 @@ class ConnectionManagerImplTest {
     verifyNoMoreInteractions(connectionData);
 
     verifyListener();
+
+    notifyLock();
   }
 
   @Test
@@ -260,10 +267,7 @@ class ConnectionManagerImplTest {
 
     verifyListener();
 
-    synchronized (secondLock) {
-      waiting = false;
-      secondLock.notifyAll();
-    }
+    notifyLock();
   }
 
   private void interruptThread(Thread thread) throws InterruptedException {
@@ -290,6 +294,13 @@ class ConnectionManagerImplTest {
       when(stream).thenReturn(outputStream);
 
       connectionManager.makeConnection(socket);
+    }
+  }
+
+  private void notifyLock() {
+    synchronized (secondLock) {
+      secondWaiting = false;
+      secondLock.notifyAll();
     }
   }
 
