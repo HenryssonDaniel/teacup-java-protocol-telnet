@@ -6,9 +6,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class FactoryTest {
+  private static final String DATA = "data";
   private final Listener listener = mock(Listener.class);
 
   @Test
@@ -26,6 +28,17 @@ class FactoryTest {
   @Test
   void createListenerWithBacklog() {
     assertThat(Factory.createListener(1, 1, 1, 1, 1)).isExactlyInstanceOf(ListenerImpl.class);
+  }
+
+  @Test
+  void createReply() {
+    assertThat(Factory.createReply(DATA)).isExactlyInstanceOf(ReplyImpl.class);
+  }
+
+  @Test
+  void createReplyWithString() {
+    assertThat(Factory.createReply(DATA.getBytes(StandardCharsets.UTF_8)))
+        .isExactlyInstanceOf(ReplyImpl.class);
   }
 
   @Test

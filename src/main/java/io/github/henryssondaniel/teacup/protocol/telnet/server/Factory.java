@@ -1,6 +1,7 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import io.github.henryssondaniel.teacup.protocol.telnet.SimpleServer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ public enum Factory {
   ;
 
   private static final String CREATE_LISTENER = "Create listener";
+  private static final String CREATE_REPLY = "Create reply";
   private static final Logger LOGGER =
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(Factory.class);
 
@@ -70,6 +72,30 @@ public enum Factory {
       int housekeepingInterval, int maxConnections, int port, int timeout) {
     LOGGER.log(Level.FINE, CREATE_LISTENER);
     return createListener(0, housekeepingInterval, maxConnections, port, timeout);
+  }
+
+  /**
+   * Creates a new {@link Reply}.
+   *
+   * @param data the data
+   * @return the reply
+   * @since 1.0
+   */
+  public static Reply createReply(byte... data) {
+    LOGGER.log(Level.FINE, CREATE_REPLY);
+    return new ReplyImpl(data);
+  }
+
+  /**
+   * Creates a new {@link Reply}.
+   *
+   * @param data the data
+   * @return the reply
+   * @since 1.0
+   */
+  public static Reply createReply(String data) {
+    LOGGER.log(Level.FINE, CREATE_REPLY);
+    return createReply(data.getBytes(StandardCharsets.UTF_8));
   }
 
   /**
