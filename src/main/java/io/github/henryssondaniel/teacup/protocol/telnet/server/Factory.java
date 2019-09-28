@@ -28,19 +28,15 @@ public enum Factory {
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(Factory.class);
 
   /**
-   * Creates a new listener.
+   * Creates a new {@link Context}.
    *
-   * @param housekeepingInterval the housekeeping interval
-   * @param maxConnections the max connections
-   * @param port the port
-   * @param timeout the timeout
-   * @return the listener
+   * @param reply the reply
+   * @return the context
    * @since 1.0
    */
-  public static Listener createListener(
-      int housekeepingInterval, int maxConnections, int port, int timeout) {
-    LOGGER.log(Level.FINE, CREATE_LISTENER);
-    return createListener(0, housekeepingInterval, maxConnections, port, timeout);
+  public static Context createContext(Reply reply) {
+    LOGGER.log(Level.FINE, "Create context");
+    return new ContextImpl(reply);
   }
 
   /**
@@ -58,6 +54,22 @@ public enum Factory {
       int backlog, int housekeepingInterval, int maxConnections, int port, int timeout) {
     LOGGER.log(Level.FINE, CREATE_LISTENER);
     return new ListenerImpl(backlog, housekeepingInterval, maxConnections, port, timeout);
+  }
+
+  /**
+   * Creates a new listener.
+   *
+   * @param housekeepingInterval the housekeeping interval
+   * @param maxConnections the max connections
+   * @param port the port
+   * @param timeout the timeout
+   * @return the listener
+   * @since 1.0
+   */
+  public static Listener createListener(
+      int housekeepingInterval, int maxConnections, int port, int timeout) {
+    LOGGER.log(Level.FINE, CREATE_LISTENER);
+    return createListener(0, housekeepingInterval, maxConnections, port, timeout);
   }
 
   /**
