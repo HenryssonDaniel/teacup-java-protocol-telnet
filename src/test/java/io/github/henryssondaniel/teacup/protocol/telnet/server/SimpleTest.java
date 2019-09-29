@@ -1,7 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -92,13 +91,11 @@ class SimpleTest {
     var supplier = simpleServer.setContext(context);
 
     when(handler.getReply()).thenReturn(replyDifferent);
+    when(handler.getTimeoutSuppliers())
+        .thenAnswer(invocationOnMock -> waiting(Collections.singletonList(timeoutSupplier)));
     when(replyDifferent.getData()).thenReturn("other message".getBytes(StandardCharsets.UTF_8));
 
     var thread = createThread();
-
-    doAnswer(invocationOnMock -> waiting(Collections.singletonList(timeoutSupplier)))
-        .when(handler)
-        .getTimeoutSuppliers();
     removeSupplier(supplier);
     interrupt(thread);
 
@@ -178,7 +175,7 @@ class SimpleTest {
     var thread =
         new Thread(
             () -> {
-              doAnswer(invocationOnMock -> waiting(bytes)).when(replyDifferent).getData();
+              when(replyDifferent.getData()).thenAnswer(invocationOnMock -> waiting(bytes));
               setSecondContext();
             });
     thread.start();
