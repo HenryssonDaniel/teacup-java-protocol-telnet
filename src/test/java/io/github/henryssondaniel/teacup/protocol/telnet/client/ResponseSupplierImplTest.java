@@ -17,9 +17,15 @@ class ResponseSupplierImplTest {
 
   @Test
   void get() throws IOException {
-    try (InputStream stream = new ByteArrayInputStream(TEST.getBytes(StandardCharsets.UTF_8))) {
+    var bytes = TEST.getBytes(StandardCharsets.UTF_8);
+
+    try (InputStream stream = new ByteArrayInputStream(bytes)) {
       var responseSupplier = createResponseSupplier(stream);
-      assertThat(responseSupplier.get()).isEqualTo(TEST);
+      var response = responseSupplier.get();
+
+      assertThat(response.getData()).isEqualTo(bytes);
+      assertThat(response.getDataAsString()).isEqualTo(TEST);
+
       responseSupplier.interrupt();
     }
   }

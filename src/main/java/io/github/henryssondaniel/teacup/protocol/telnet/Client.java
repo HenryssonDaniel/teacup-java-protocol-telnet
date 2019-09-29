@@ -1,5 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet;
 
+import io.github.henryssondaniel.teacup.protocol.telnet.client.Response;
 import java.io.IOException;
 import java.net.Proxy;
 import java.net.SocketException;
@@ -22,7 +23,7 @@ public interface Client {
    * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  Supplier<String> connect(String hostname) throws IOException;
+  Supplier<Response> connect(String hostname) throws IOException;
 
   /**
    * Connect.
@@ -33,7 +34,7 @@ public interface Client {
    * @throws IOException if the socket could not be opened
    * @since 1.0
    */
-  Supplier<String> connect(String hostname, int port) throws IOException;
+  Supplier<Response> connect(String hostname, int port) throws IOException;
 
   /**
    * Disconnect.

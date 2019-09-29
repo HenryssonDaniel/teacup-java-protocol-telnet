@@ -26,13 +26,13 @@ class Simple implements SimpleServer {
 
   @Override
   public void removeSupplier(Supplier<List<Request>> supplier) {
-    LOGGER.log(Level.INFO, "Remove supplier");
+    LOGGER.log(Level.FINE, "Remove supplier");
     if (supplier instanceof TimeoutSupplier) ((TimeoutSupplier) supplier).stop();
   }
 
   @Override
   public Supplier<List<Request>> setContext(Context context) {
-    LOGGER.log(Level.INFO, "Set context");
+    LOGGER.log(Level.FINE, "Set context");
 
     TimeoutSupplier timeoutSupplier = new TimeoutSupplierImpl(new ReentrantLock());
 
@@ -49,13 +49,13 @@ class Simple implements SimpleServer {
 
   @Override
   public void setUp() {
-    LOGGER.log(Level.INFO, "Set up");
+    LOGGER.log(Level.FINE, "Set up");
     telnetD.start();
   }
 
   @Override
   public void tearDown() {
-    LOGGER.log(Level.INFO, "Tear down");
+    LOGGER.log(Level.FINE, "Tear down");
     telnetD.stop();
   }
 

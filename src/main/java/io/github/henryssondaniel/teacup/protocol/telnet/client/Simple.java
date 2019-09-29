@@ -28,13 +28,13 @@ class Simple implements Client {
   }
 
   @Override
-  public Supplier<String> connect(String hostname) throws IOException {
+  public Supplier<Response> connect(String hostname) throws IOException {
     LOGGER.log(Level.FINE, CONNECT);
     return connect(hostname, telnetClient.getDefaultPort());
   }
 
   @Override
-  public Supplier<String> connect(String hostname, int port) throws IOException {
+  public Supplier<Response> connect(String hostname, int port) throws IOException {
     LOGGER.log(Level.FINE, CONNECT);
 
     if (responseSupplier == null)

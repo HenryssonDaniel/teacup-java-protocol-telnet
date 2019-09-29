@@ -4,7 +4,6 @@ import io.github.henryssondaniel.teacup.core.logging.Factory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +15,7 @@ class ResponseSupplierImpl implements ResponseSupplier {
   private final Object lock = new Object();
   private final Thread thread;
 
-  private String response;
+  private ResponseAdder responseAdder;
   private boolean waiting = true;
 
   ResponseSupplierImpl(InputStream inputStream) {
@@ -24,17 +23,17 @@ class ResponseSupplierImpl implements ResponseSupplier {
   }
 
   @Override
-  public String get() {
+  public Response get() {
     LOGGER.log(Level.FINE, "Get");
 
-    String currentResponse;
+    Response response;
 
     synchronized (lock) {
-      currentResponse = Optional.ofNullable(response).orElseGet(this::getResponse);
-      response = null;
+      response = Optional.ofNullable((Response) responseAdder).orElseGet(this::getResponse);
+      responseAdder = null;
     }
 
-    return currentResponse;
+    return response;
   }
 
   @Override
@@ -54,8 +53,8 @@ class ResponseSupplierImpl implements ResponseSupplier {
     thread.start();
   }
 
-  private String getResponse() {
-    String currentResponse = null;
+  private Response getResponse() {
+    Response response = null;
 
     if (thread.isAlive())
       try {
@@ -64,15 +63,15 @@ class ResponseSupplierImpl implements ResponseSupplier {
 
           waiting = true;
 
-          currentResponse = response;
-          response = null;
+          response = responseAdder;
+          responseAdder = null;
         }
       } catch (InterruptedException interruptedException) {
         LOGGER.log(Level.SEVERE, "The thread got interrupted", interruptedException);
         Thread.currentThread().interrupt();
       }
 
-    return currentResponse;
+    return response;
   }
 
   private int readResponse(InputStream inputStream, byte... buff) throws IOException {
@@ -83,8 +82,13 @@ class ResponseSupplierImpl implements ResponseSupplier {
 
       LOGGER.log(Level.INFO, currentResponse);
 
+      var bytes = new byte[bytesRead];
+      System.arraycopy(buff, 0, bytes, 0, bytesRead);
+
       synchronized (lock) {
-        response = Objects.requireNonNullElse(response, "") + currentResponse;
+        if (responseAdder == null) responseAdder = new ResponseImpl(currentResponse, bytes);
+        else responseAdder.addData(currentResponse, bytes);
+
         waiting = false;
         lock.notifyAll();
       }
