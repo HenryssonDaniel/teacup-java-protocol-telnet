@@ -5,29 +5,43 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class ResponseSupplierImplTest {
-  private static final String TEST = "test";
   private final InputStream inputStream = mock(InputStream.class);
+  private final Object lock = new Object();
+  private final Object lockSecond = new Object();
+
+  private boolean waiting = true;
+  private boolean waitingSecond = true;
 
   @Test
-  void get() throws IOException {
-    var bytes = TEST.getBytes(StandardCharsets.UTF_8);
+  void get() throws IOException, InterruptedException {
+    when(inputStream.read(any(byte[].class))).thenReturn(1, 2).thenAnswer(invocation -> read());
 
-    try (InputStream stream = new ByteArrayInputStream(bytes)) {
-      var responseSupplier = createResponseSupplier(stream);
-      var response = responseSupplier.get();
+    var responseSupplier = createResponseSupplier(inputStream);
 
-      assertThat(response.getData()).isEqualTo(bytes);
-      assertThat(response.getDataAsString()).isEqualTo(TEST);
-
-      responseSupplier.interrupt();
+    synchronized (lock) {
+      while (waiting) lock.wait(1L);
     }
+
+    var bytes = new byte[] {(byte) 0, (byte) 0, (byte) 0};
+
+    var response = responseSupplier.get();
+
+    assertThat(response.getData()).isEqualTo(bytes);
+    assertThat(response.getDataAsString())
+        .isEqualTo(new String(bytes, 0, 3, StandardCharsets.UTF_8));
+
+    synchronized (lockSecond) {
+      waitingSecond = false;
+      lockSecond.notifyAll();
+    }
+
+    responseSupplier.interrupt();
   }
 
   @Test
@@ -39,7 +53,7 @@ class ResponseSupplierImplTest {
 
   @Test
   void getWhenIOException() throws IOException {
-    when(inputStream.read(any(byte[].class))).thenThrow(new IOException(TEST));
+    when(inputStream.read(any(byte[].class))).thenThrow(new IOException("test"));
 
     var responseSupplier = createResponseSupplier(inputStream);
     assertThat(responseSupplier.get()).isNull();
@@ -66,5 +80,18 @@ class ResponseSupplierImplTest {
     responseSupplier.start();
 
     return responseSupplier;
+  }
+
+  private Object read() throws InterruptedException {
+    synchronized (lock) {
+      waiting = false;
+      lock.notifyAll();
+    }
+
+    synchronized (lockSecond) {
+      while (waitingSecond) lockSecond.wait(1L);
+    }
+
+    return -1;
   }
 }
