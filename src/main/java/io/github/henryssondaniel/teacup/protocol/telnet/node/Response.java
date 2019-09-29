@@ -8,5 +8,5 @@ import io.github.henryssondaniel.teacup.core.Node;
  * @since 1.0
  */
 @FunctionalInterface
-public interface Reply
-    extends Node<io.github.henryssondaniel.teacup.protocol.telnet.server.Reply> {}
+public interface Response
+    extends Node<io.github.henryssondaniel.teacup.protocol.telnet.client.Response> {}
