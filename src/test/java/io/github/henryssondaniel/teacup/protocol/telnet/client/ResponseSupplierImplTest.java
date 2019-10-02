@@ -62,9 +62,11 @@ class ResponseSupplierImplTest {
 
   @Test
   void getWhenInterrupted() throws IOException {
-    when(inputStream.read(any(byte[].class))).thenReturn(0);
+    ResponseSupplier responseSupplier;
 
-    var responseSupplier = createResponseSupplier(inputStream);
+    try (var stream = InputStream.nullInputStream()) {
+      responseSupplier = createResponseSupplier(stream);
+    }
 
     var thread = new Thread(responseSupplier::get);
     thread.start();
