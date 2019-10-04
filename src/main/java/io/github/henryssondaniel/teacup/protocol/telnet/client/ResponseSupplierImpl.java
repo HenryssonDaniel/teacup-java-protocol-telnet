@@ -106,11 +106,11 @@ class ResponseSupplierImpl implements ResponseSupplier {
       while (bytesRead >= 0);
     } catch (IOException ioException) {
       LOGGER.log(Level.SEVERE, "Exception while reading socket", ioException);
+    }
 
-      synchronized (lock) {
-        waiting = false;
-        lock.notifyAll();
-      }
+    synchronized (lock) {
+      waiting = false;
+      lock.notifyAll();
     }
   }
 }

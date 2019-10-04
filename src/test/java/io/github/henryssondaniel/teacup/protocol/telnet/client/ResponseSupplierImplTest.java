@@ -64,7 +64,9 @@ class ResponseSupplierImplTest {
   void getWhenInterrupted() throws IOException, InterruptedException {
     ResponseSupplier responseSupplier;
 
-    try (var stream = InputStream.nullInputStream()) {
+    try (var stream = mock(InputStream.class)) {
+      when(stream.read()).thenReturn(0);
+
       responseSupplier = createResponseSupplier(stream);
     }
 
@@ -75,8 +77,12 @@ class ResponseSupplierImplTest {
       while (waiting) lock.wait(1L);
     }
 
-    responseSupplier.interrupt();
-    thread.interrupt();
+    new Thread(
+            () -> {
+              thread.interrupt();
+              responseSupplier.interrupt();
+            })
+        .start();
 
     assertThat(responseSupplier.get()).isNull();
   }
