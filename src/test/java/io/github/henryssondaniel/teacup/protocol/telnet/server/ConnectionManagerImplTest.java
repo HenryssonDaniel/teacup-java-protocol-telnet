@@ -204,14 +204,7 @@ class ConnectionManagerImplTest {
               stopWait();
               return true;
             })
-        .thenAnswer(
-            invocation -> {
-              synchronized (secondLock) {
-                while (secondWaiting) secondLock.wait(1L);
-              }
-
-              return false;
-            });
+        .thenAnswer(invocation -> getObject());
     when(connection.getConnectionData()).thenReturn(connectionData);
 
     when(listener.getTimeout()).thenReturn(Integer.MAX_VALUE);
@@ -256,18 +249,32 @@ class ConnectionManagerImplTest {
 
     synchronized (lock) {
       while (waiting) lock.wait(1L);
+      waiting = true;
     }
 
-    var thread = new Thread(connectionManager::stop);
+    var thread =
+        new Thread(
+            () -> {
+              stopWait();
+              connectionManager.stop();
+            });
     thread.start();
+
+    waitLock();
+
     thread.interrupt();
 
     verify(connection).isActive();
     verifyNoMoreInteractions(connection);
-
     verifyListener();
+  }
 
-    notifyLock();
+  private Object getObject() throws InterruptedException {
+    synchronized (secondLock) {
+      while (secondWaiting) secondLock.wait(1L);
+    }
+
+    return false;
   }
 
   private void interruptThread(Thread thread) throws InterruptedException {
@@ -281,11 +288,7 @@ class ConnectionManagerImplTest {
   private Object isActive() throws InterruptedException {
     stopWait();
 
-    synchronized (secondLock) {
-      while (secondWaiting) secondLock.wait(1L);
-    }
-
-    return false;
+    return getObject();
   }
 
   private void makeConnection(ConnectionManager connectionManager, OutputStream outputStream)
@@ -316,5 +319,11 @@ class ConnectionManagerImplTest {
     verify(listener).getMaxConnections();
     verify(listener).getTimeout();
     verifyNoMoreInteractions(listener);
+  }
+
+  private void waitLock() throws InterruptedException {
+    synchronized (lock) {
+      while (waiting) lock.wait(1L);
+    }
   }
 }
