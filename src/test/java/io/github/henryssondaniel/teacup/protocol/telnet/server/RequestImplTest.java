@@ -15,7 +15,7 @@ class RequestImplTest {
 
   @Test
   void getCommandString() {
-    assertThat(request.getCommandString())
+    assertThat(request.getCommandAsString())
         .isEqualTo(new String(new byte[] {(byte) 1}, StandardCharsets.UTF_8));
   }
 }

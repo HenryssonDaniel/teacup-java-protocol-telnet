@@ -31,6 +31,6 @@ class RequestImpl extends SetterImpl<Request, GenericObjectAssert<Request, ?>>
     LOGGER.log(Level.FINE, "Verify");
 
     if (command != null) command.verify(request.getCommand());
-    if (commandAsString != null) commandAsString.verify(request.getCommandString());
+    if (commandAsString != null) commandAsString.verify(request.getCommandAsString());
   }
 }

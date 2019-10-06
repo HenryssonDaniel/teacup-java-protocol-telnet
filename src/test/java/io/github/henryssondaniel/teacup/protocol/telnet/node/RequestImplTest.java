@@ -43,10 +43,10 @@ class RequestImplTest {
     requestSetter.setCommandAsString(genericStringAssert);
     requestSetter.verify(request);
 
-    verify(genericStringAssert).verify(request.getCommandString());
+    verify(genericStringAssert).verify(request.getCommandAsString());
     verifyNoMoreInteractions(genericStringAssert);
 
-    verify(request, times(2)).getCommandString();
+    verify(request, times(2)).getCommandAsString();
     verifyNoMoreInteractions(request);
   }
 }

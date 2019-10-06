@@ -4,11 +4,11 @@ import java.nio.charset.StandardCharsets;
 
 class RequestImpl implements Request {
   private final byte command;
-  private final String commandString;
+  private final String commandAsString;
 
   RequestImpl(byte command) {
     this.command = command;
-    commandString = new String(new byte[] {command}, StandardCharsets.UTF_8);
+    commandAsString = new String(new byte[] {command}, StandardCharsets.UTF_8);
   }
 
   @Override
@@ -17,7 +17,7 @@ class RequestImpl implements Request {
   }
 
   @Override
-  public String getCommandString() {
-    return commandString;
+  public String getCommandAsString() {
+    return commandAsString;
   }
 }

@@ -20,5 +20,5 @@ public interface Request {
    * @return the command
    * @since 1.0
    */
-  String getCommandString();
+  String getCommandAsString();
 }
