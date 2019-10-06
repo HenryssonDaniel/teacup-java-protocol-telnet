@@ -11,7 +11,12 @@ class RequestTest {
 
   @Test
   void createRequestBuilder() {
+    Request request = new TestRequest();
+
     Factory.createRequestBuilder()
+        .setAssertion(
+            io.github.henryssondaniel.teacup.core.assertion.Factory.<Request>createObjectAssert()
+                .isSameAs(request))
         .setCommand(
             io.github.henryssondaniel.teacup.core.assertion.Factory.createObjectAssert()
                 .isEqualTo(BYTE))
@@ -19,7 +24,7 @@ class RequestTest {
             io.github.henryssondaniel.teacup.core.assertion.Factory.createStringAssert()
                 .isEqualTo(COMMAND))
         .build()
-        .verify(new TestRequest());
+        .verify(request);
   }
 
   private static class TestRequest implements Request {

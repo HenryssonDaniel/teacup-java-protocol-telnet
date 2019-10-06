@@ -31,6 +31,9 @@ class ResponseImpl extends SetterImpl<Response, GenericObjectAssert<Response, ?>
   public void verify(Response response) {
     LOGGER.log(Level.FINE, "Verify");
 
+    var genericObjectAssert = getAssertion();
+    if (genericObjectAssert != null) genericObjectAssert.verify(response);
+
     if (data != null) data.verify(response.getData());
     if (dataAsString != null) dataAsString.verify(response.getDataAsString());
   }

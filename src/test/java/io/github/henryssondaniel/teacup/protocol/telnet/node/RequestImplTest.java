@@ -3,6 +3,7 @@ package io.github.henryssondaniel.teacup.protocol.telnet.node;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import io.github.henryssondaniel.teacup.core.assertion.GenericObjectAssert;
@@ -18,10 +19,22 @@ class RequestImplTest {
   private final RequestSetter requestSetter = new RequestImpl();
 
   @Mock private GenericObjectAssert<? super Byte, ?> genericByteAssert;
+  @Mock private GenericObjectAssert<Request, ?> genericObjectAssert;
 
   @BeforeEach
   void beforeEach() {
     MockitoAnnotations.initMocks(this);
+  }
+
+  @Test
+  void setAssertion() {
+    requestSetter.setAssertion(genericObjectAssert);
+    requestSetter.verify(request);
+
+    verify(genericObjectAssert).verify(request);
+    verifyNoMoreInteractions(genericObjectAssert);
+
+    verifyNoInteractions(request);
   }
 
   @Test
