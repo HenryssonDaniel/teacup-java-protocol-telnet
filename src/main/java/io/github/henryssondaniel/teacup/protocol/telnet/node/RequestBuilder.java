@@ -1,8 +1,8 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.node;
 
-import io.github.henryssondaniel.teacup.core.NodeBuilder;
 import io.github.henryssondaniel.teacup.core.assertion.GenericObjectAssert;
 import io.github.henryssondaniel.teacup.core.assertion.GenericStringAssert;
+import io.github.henryssondaniel.teacup.protocol.NodeBuilder;
 
 /**
  * Request builder.

@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class RequestBuilderImplTest {
-
   @InjectMocks private final RequestBuilder requestBuilder = new RequestBuilderImpl();
   @Mock private GenericObjectAssert<? super Byte, ?> genericObjectAssert;
   @Mock private RequestSetter implementation;

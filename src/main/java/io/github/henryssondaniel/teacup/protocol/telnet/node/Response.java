@@ -1,6 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.node;
 
-import io.github.henryssondaniel.teacup.core.Node;
+import io.github.henryssondaniel.teacup.protocol.Node;
 
 /**
  * Response.

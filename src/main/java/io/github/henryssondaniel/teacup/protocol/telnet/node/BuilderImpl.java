@@ -1,9 +1,9 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.node;
 
-import io.github.henryssondaniel.teacup.core.DefaultNodeBuilder;
-import io.github.henryssondaniel.teacup.core.Node;
-import io.github.henryssondaniel.teacup.core.NodeBuilder;
 import io.github.henryssondaniel.teacup.core.assertion.GenericObjectAssert;
+import io.github.henryssondaniel.teacup.protocol.DefaultNodeBuilder;
+import io.github.henryssondaniel.teacup.protocol.Node;
+import io.github.henryssondaniel.teacup.protocol.NodeBuilder;
 
 abstract class BuilderImpl<
         T,

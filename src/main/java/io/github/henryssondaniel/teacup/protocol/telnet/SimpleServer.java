@@ -1,6 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet;
 
-import io.github.henryssondaniel.teacup.core.Server;
+import io.github.henryssondaniel.teacup.protocol.Server;
 import io.github.henryssondaniel.teacup.protocol.telnet.server.Context;
 import io.github.henryssondaniel.teacup.protocol.telnet.server.Request;
 import java.util.List;

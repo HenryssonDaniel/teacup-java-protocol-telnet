@@ -2,8 +2,8 @@ package io.github.henryssondaniel.teacup.protocol.telnet.node;
 
 import static org.mockito.Mockito.verify;
 
-import io.github.henryssondaniel.teacup.core.Node;
 import io.github.henryssondaniel.teacup.core.assertion.GenericObjectAssert;
+import io.github.henryssondaniel.teacup.protocol.Node;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
