@@ -4,13 +4,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import io.github.henryssondaniel.teacup.protocol.telnet.SimpleServer;
+import io.github.henryssondaniel.teacup.protocol.Server;
+import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import net.wimpi.telnetd.TelnetD;
@@ -26,11 +26,11 @@ class SimpleTest {
   private final Reply reply = mock(Reply.class);
   private final Reply replyDifferent = mock(Reply.class);
   private final TelnetD telnetD = mock(TelnetD.class);
-  private final SimpleServer simpleServer = new Simple(handler, telnetD);
-  private final TimeoutSupplier timeoutSupplier = mock(TimeoutSupplier.class);
+  private final Server<Context, Request> simpleServer = new Simple(handler, telnetD);
   private final Object verifyLock = new Object();
 
   @Mock private Supplier<List<Request>> supplierNonExisting;
+  @Mock private TimeoutSupplier<Request> timeoutSupplier;
   private boolean waitVerify = true;
   private boolean waiting = true;
 
@@ -45,7 +45,7 @@ class SimpleTest {
   @Test
   void removeSupplier() {
     simpleServer.removeSupplier(supplierNonExisting);
-    verifyZeroInteractions(supplierNonExisting);
+    verifyNoInteractions(supplierNonExisting);
   }
 
   @Test
@@ -61,63 +61,11 @@ class SimpleTest {
     verify(context).getReply();
     verifyNoMoreInteractions(context);
 
-    verify(handler).addTimeoutSupplier(any(TimeoutSupplier.class));
-    verify(handler).getReply();
+    verify(handler).addTimeoutSupplier(any());
     verify(handler).setReply(reply);
     verifyNoMoreInteractions(handler);
 
-    verifyZeroInteractions(reply);
-  }
-
-  @Test
-  void setContextWhenDuplicateContext() {
-    when(handler.getReply()).thenReturn(reply);
-
-    simpleServer.setContext(context);
-
-    verify(context).getReply();
-    verifyNoMoreInteractions(context);
-
-    verify(handler).addTimeoutSupplier(any(TimeoutSupplier.class));
-    verify(handler).getReply();
-    verifyNoMoreInteractions(handler);
-
-    verify(reply, times(2)).getData();
-    verifyNoMoreInteractions(reply);
-  }
-
-  @Test
-  void setContextWhenInterrupted() throws InterruptedException {
-    var supplier = simpleServer.setContext(context);
-
-    when(handler.getReply()).thenReturn(replyDifferent);
-    when(handler.getTimeoutSuppliers())
-        .thenAnswer(invocationOnMock -> waiting(Collections.singletonList(timeoutSupplier)));
-    when(replyDifferent.getData()).thenReturn("other message".getBytes(StandardCharsets.UTF_8));
-
-    var thread = createThread();
-    removeSupplier(supplier);
-    interrupt(thread);
-
-    synchronized (verifyLock) {
-      while (waitVerify) verifyLock.wait(1L);
-
-      verify(context, times(2)).getReply();
-      verifyNoMoreInteractions(context);
-
-      verify(handler).addTimeoutSupplier(any(TimeoutSupplier.class));
-      verify(handler, times(2)).getReply();
-      verify(handler).getTimeoutSuppliers();
-      verify(handler).removeTimeoutSupplier(any(TimeoutSupplier.class));
-      verify(handler).setReply(reply);
-      verifyNoMoreInteractions(handler);
-
-      verify(reply).getData();
-      verifyNoMoreInteractions(reply);
-
-      verify(replyDifferent).getData();
-      verifyNoMoreInteractions(replyDifferent);
-    }
+    verifyNoInteractions(reply);
   }
 
   @Test
@@ -135,15 +83,15 @@ class SimpleTest {
       verify(context, times(3)).getReply();
       verifyNoMoreInteractions(context);
 
-      verify(handler, times(2)).addTimeoutSupplier(any(TimeoutSupplier.class));
-      verify(handler, times(3)).getReply();
+      verify(handler, times(2)).addTimeoutSupplier(any());
+      verify(handler).getReply();
       verify(handler).getTimeoutSuppliers();
-      verify(handler).removeTimeoutSupplier(any(TimeoutSupplier.class));
+      verify(handler).removeTimeoutSupplier(any());
       verify(handler).setReply(null);
-      verify(handler).setReply(reply);
+      verify(handler, times(2)).setReply(reply);
       verifyNoMoreInteractions(handler);
 
-      verify(reply, times(3)).getData();
+      verify(reply).getData();
       verifyNoMoreInteractions(reply);
 
       verify(replyDifferent).getData();
@@ -155,7 +103,7 @@ class SimpleTest {
   void setUp() {
     simpleServer.setUp();
 
-    verifyZeroInteractions(handler);
+    verifyNoInteractions(handler);
 
     verify(telnetD).start();
     verifyNoMoreInteractions(telnetD);
@@ -165,7 +113,7 @@ class SimpleTest {
   void tearDown() {
     simpleServer.tearDown();
 
-    verifyZeroInteractions(handler);
+    verifyNoInteractions(handler);
 
     verify(telnetD).stop();
     verifyNoMoreInteractions(telnetD);

@@ -5,7 +5,7 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
  *
  * @since 1.0
  */
-public interface Request {
+public interface Request extends io.github.henryssondaniel.teacup.protocol.server.Request {
   /**
    * Returns the command.
    *

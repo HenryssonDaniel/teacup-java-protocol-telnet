@@ -1,5 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
+import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -17,12 +18,12 @@ class HandlerImpl implements Handler {
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(HandlerImpl.class);
   private static final String MESSAGE = "{0}ing the timeout supplier{1}";
 
-  private final List<TimeoutSupplier> timeoutSuppliers = new LinkedList<>();
+  private final List<TimeoutSupplier<Request>> timeoutSuppliers = new LinkedList<>();
 
   private Reply reply;
 
   @Override
-  public void addTimeoutSupplier(TimeoutSupplier timeoutSupplier) {
+  public void addTimeoutSupplier(TimeoutSupplier<Request> timeoutSupplier) {
     LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Add", ""});
     timeoutSuppliers.add(timeoutSupplier);
   }
@@ -54,13 +55,13 @@ class HandlerImpl implements Handler {
   }
 
   @Override
-  public List<TimeoutSupplier> getTimeoutSuppliers() {
+  public List<TimeoutSupplier<Request>> getTimeoutSuppliers() {
     LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Sett", "s"});
     return new ArrayList<>(timeoutSuppliers);
   }
 
   @Override
-  public void removeTimeoutSupplier(TimeoutSupplier timeoutSupplier) {
+  public void removeTimeoutSupplier(TimeoutSupplier<Request> timeoutSupplier) {
     LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Remov", ""});
     timeoutSuppliers.remove(timeoutSupplier);
   }

@@ -3,8 +3,8 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class FactoryTest {
   void createContext() {
     var reply = mock(Reply.class);
     assertThat(Factory.createContext(reply)).isExactlyInstanceOf(ContextImpl.class);
-    verifyZeroInteractions(reply);
+    verifyNoInteractions(reply);
   }
 
   @Test

@@ -4,23 +4,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.io.IOException;
 import net.wimpi.telnetd.io.BasicTerminalIO;
 import net.wimpi.telnetd.net.Connection;
 import net.wimpi.telnetd.net.ConnectionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 class HandlerImplTest {
   private final BasicTerminalIO basicTerminalIO = mock(BasicTerminalIO.class);
   private final Connection connection = mock(Connection.class);
   private final ConnectionEvent connectionEvent = mock(ConnectionEvent.class);
   private final Handler handler = new HandlerImpl();
-  private final TimeoutSupplier timeoutSupplier = mock(TimeoutSupplier.class);
+
+  @Mock private TimeoutSupplier<Request> timeoutSupplier;
 
   @Test
   void addAndGetTimeoutSuppliers() {
@@ -30,25 +34,26 @@ class HandlerImplTest {
 
   @BeforeEach
   void beforeEach() {
+    MockitoAnnotations.initMocks(this);
     when(connection.getTerminalIO()).thenReturn(basicTerminalIO);
   }
 
   @Test
   void connectionIdle() {
     handler.connectionIdle(connectionEvent);
-    verifyZeroInteractions(connectionEvent);
+    verifyNoInteractions(connectionEvent);
   }
 
   @Test
   void connectionLogoutRequest() {
     handler.connectionLogoutRequest(connectionEvent);
-    verifyZeroInteractions(connectionEvent);
+    verifyNoInteractions(connectionEvent);
   }
 
   @Test
   void connectionSentBreak() {
     handler.connectionSentBreak(connectionEvent);
-    verifyZeroInteractions(connectionEvent);
+    verifyNoInteractions(connectionEvent);
   }
 
   @Test

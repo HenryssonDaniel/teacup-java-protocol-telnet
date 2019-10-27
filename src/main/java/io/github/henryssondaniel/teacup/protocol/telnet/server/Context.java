@@ -6,7 +6,7 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
  * @since 1.0
  */
 @FunctionalInterface
-public interface Context {
+public interface Context extends io.github.henryssondaniel.teacup.protocol.server.Context {
   /**
    * Returns the reply.
    *

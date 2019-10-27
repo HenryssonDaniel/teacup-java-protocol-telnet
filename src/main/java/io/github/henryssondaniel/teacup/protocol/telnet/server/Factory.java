@@ -1,6 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
-import io.github.henryssondaniel.teacup.protocol.telnet.SimpleServer;
+import io.github.henryssondaniel.teacup.protocol.Server;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -99,18 +99,18 @@ public enum Factory {
   }
 
   /**
-   * Creates a new {@link SimpleServer}.
+   * Creates a new {@link Server}.
    *
    * @param listener the listener
-   * @return the simple server
+   * @return the server
    * @since 1.0
    */
-  public static SimpleServer createSimpleServer(Listener listener) {
+  public static Server<Context, Request> createSimpleServer(Listener listener) {
     LOGGER.log(Level.FINE, "Create simple server");
     return createSimpleServer(listener, "default");
   }
 
-  static SimpleServer createSimpleServer(Listener listener, String name) {
+  static Server<Context, Request> createSimpleServer(Listener listener, String name) {
     Handler handler = new HandlerImpl();
 
     var telnetD = TelnetD.createTelnetD();
