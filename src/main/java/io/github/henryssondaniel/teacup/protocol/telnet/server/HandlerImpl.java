@@ -1,11 +1,7 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
-import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,17 +12,8 @@ import net.wimpi.telnetd.net.ConnectionEvent;
 class HandlerImpl implements Handler {
   private static final Logger LOGGER =
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(HandlerImpl.class);
-  private static final String MESSAGE = "{0}ing the timeout supplier{1}";
-
-  private final List<TimeoutSupplier<Request>> timeoutSuppliers = new LinkedList<>();
-
+  private io.github.henryssondaniel.teacup.protocol.server.Handler<Request> handler;
   private Reply reply;
-
-  @Override
-  public void addTimeoutSupplier(TimeoutSupplier<Request> timeoutSupplier) {
-    LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Add", ""});
-    timeoutSuppliers.add(timeoutSupplier);
-  }
 
   @Override
   public void connectionIdle(ConnectionEvent connectionEvent) {
@@ -55,18 +42,6 @@ class HandlerImpl implements Handler {
   }
 
   @Override
-  public List<TimeoutSupplier<Request>> getTimeoutSuppliers() {
-    LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Sett", "s"});
-    return new ArrayList<>(timeoutSuppliers);
-  }
-
-  @Override
-  public void removeTimeoutSupplier(TimeoutSupplier<Request> timeoutSupplier) {
-    LOGGER.log(Level.FINE, MESSAGE, new Object[] {"Remov", ""});
-    timeoutSuppliers.remove(timeoutSupplier);
-  }
-
-  @Override
   public void run(Connection connection) {
     try {
       var terminalIO = connection.getTerminalIO();
@@ -76,6 +51,12 @@ class HandlerImpl implements Handler {
     } catch (IOException ioException) {
       LOGGER.log(Level.INFO, "Error while listening to incoming requests", ioException);
     }
+  }
+
+  @Override
+  public void setHandler(
+      io.github.henryssondaniel.teacup.protocol.server.Handler<Request> handler) {
+    this.handler = handler;
   }
 
   @Override
@@ -98,8 +79,7 @@ class HandlerImpl implements Handler {
           Level.INFO,
           () -> "Request: " + new String(new byte[] {byteData}, StandardCharsets.UTF_8));
 
-      Request request = new RequestImpl(byteData);
-      timeoutSuppliers.forEach(timeoutSupplier -> timeoutSupplier.addRequest(request));
+      if (handler != null) handler.addRequest(new RequestImpl(byteData));
 
       for (var data : reply.getData()) basicTerminalIO.write(data);
       basicTerminalIO.flush();

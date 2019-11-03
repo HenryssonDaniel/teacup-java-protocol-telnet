@@ -8,14 +8,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.io.IOException;
 import net.wimpi.telnetd.io.BasicTerminalIO;
 import net.wimpi.telnetd.net.Connection;
 import net.wimpi.telnetd.net.ConnectionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class HandlerImplTest {
@@ -23,14 +21,6 @@ class HandlerImplTest {
   private final Connection connection = mock(Connection.class);
   private final ConnectionEvent connectionEvent = mock(ConnectionEvent.class);
   private final Handler handler = new HandlerImpl();
-
-  @Mock private TimeoutSupplier<Request> timeoutSupplier;
-
-  @Test
-  void addAndGetTimeoutSuppliers() {
-    handler.addTimeoutSupplier(timeoutSupplier);
-    assertThat(handler.getTimeoutSuppliers()).containsExactly(timeoutSupplier);
-  }
 
   @BeforeEach
   void beforeEach() {
@@ -72,17 +62,6 @@ class HandlerImplTest {
   @Test
   void getReply() {
     assertThat(handler.getReply()).isNull();
-  }
-
-  @Test
-  void getTimeoutSuppliers() {
-    assertThat(handler.getTimeoutSuppliers()).isEmpty();
-  }
-
-  @Test
-  void removeAndGetTimeoutSupplier() {
-    handler.removeTimeoutSupplier(timeoutSupplier);
-    assertThat(handler.getTimeoutSuppliers()).isEmpty();
   }
 
   @Test

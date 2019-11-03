@@ -2,14 +2,12 @@ package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.github.henryssondaniel.teacup.protocol.Server;
-import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,7 +28,6 @@ class SimpleTest {
   private final Object verifyLock = new Object();
 
   @Mock private Supplier<List<Request>> supplierNonExisting;
-  @Mock private TimeoutSupplier<Request> timeoutSupplier;
   private boolean waitVerify = true;
   private boolean waiting = true;
 
@@ -49,54 +46,17 @@ class SimpleTest {
   }
 
   @Test
-  void removeSupplierWhenTimeoutSupplier() {
-    simpleServer.removeSupplier(timeoutSupplier);
-    verify(timeoutSupplier).stop();
-  }
-
-  @Test
   void setContext() {
     simpleServer.setContext(context);
 
     verify(context).getReply();
     verifyNoMoreInteractions(context);
 
-    verify(handler).addTimeoutSupplier(any());
+    verify(handler).setHandler(any());
     verify(handler).setReply(reply);
     verifyNoMoreInteractions(handler);
 
     verifyNoInteractions(reply);
-  }
-
-  @Test
-  void setContextWhenReply() throws InterruptedException {
-    var supplier = simpleServer.setContext(context);
-
-    when(handler.getReply()).thenReturn(replyDifferent, reply);
-
-    createThread("2".getBytes(StandardCharsets.UTF_8));
-    removeSupplier(supplier);
-
-    synchronized (verifyLock) {
-      while (waitVerify) verifyLock.wait(1L);
-
-      verify(context, times(3)).getReply();
-      verifyNoMoreInteractions(context);
-
-      verify(handler, times(2)).addTimeoutSupplier(any());
-      verify(handler).getReply();
-      verify(handler).getTimeoutSuppliers();
-      verify(handler).removeTimeoutSupplier(any());
-      verify(handler).setReply(null);
-      verify(handler, times(2)).setReply(reply);
-      verifyNoMoreInteractions(handler);
-
-      verify(reply).getData();
-      verifyNoMoreInteractions(reply);
-
-      verify(replyDifferent).getData();
-      verifyNoMoreInteractions(replyDifferent);
-    }
   }
 
   @Test
@@ -117,49 +77,5 @@ class SimpleTest {
 
     verify(telnetD).stop();
     verifyNoMoreInteractions(telnetD);
-  }
-
-  private Thread createThread(byte... bytes) {
-    var thread =
-        new Thread(
-            () -> {
-              when(replyDifferent.getData()).thenAnswer(invocationOnMock -> waiting(bytes));
-              setSecondContext();
-            });
-    thread.start();
-    return thread;
-  }
-
-  private void interrupt(Thread thread) throws InterruptedException {
-    synchronized (lock) {
-      while (waiting) lock.wait(1L);
-
-      thread.interrupt();
-    }
-  }
-
-  private void removeSupplier(Supplier<List<Request>> supplier) throws InterruptedException {
-    synchronized (lock) {
-      while (waiting) lock.wait(1L);
-
-      simpleServer.removeSupplier(supplier);
-    }
-  }
-
-  private void setSecondContext() {
-    synchronized (verifyLock) {
-      simpleServer.setContext(context);
-      waitVerify = false;
-      verifyLock.notifyAll();
-    }
-  }
-
-  private Object waiting(Object object) {
-    synchronized (lock) {
-      waiting = false;
-      lock.notifyAll();
-    }
-
-    return object;
   }
 }

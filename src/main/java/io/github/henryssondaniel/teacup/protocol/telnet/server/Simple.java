@@ -1,7 +1,6 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import io.github.henryssondaniel.teacup.protocol.server.Base;
-import io.github.henryssondaniel.teacup.protocol.server.TimeoutSupplier;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,16 +32,12 @@ class Simple extends Base<Context, Handler, Request> {
 
   @Override
   protected Handler createProtocolContext(
-      Context context, TimeoutSupplier<Request> timeoutSupplier) {
-    handler.addTimeoutSupplier(timeoutSupplier);
+      Context context,
+      io.github.henryssondaniel.teacup.protocol.server.Handler<Request> requestHandler) {
+    handler.setHandler(requestHandler);
     handler.setReply(context.getReply());
 
     return handler;
-  }
-
-  @Override
-  protected Handler getHandler(Handler protocolContext) {
-    return protocolContext;
   }
 
   @Override
