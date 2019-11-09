@@ -1,6 +1,7 @@
 package io.github.henryssondaniel.teacup.protocol.telnet.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,6 +15,7 @@ import net.wimpi.telnetd.net.Connection;
 import net.wimpi.telnetd.net.ConnectionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 class HandlerImplTest {
@@ -21,11 +23,17 @@ class HandlerImplTest {
   private final Connection connection = mock(Connection.class);
   private final ConnectionEvent connectionEvent = mock(ConnectionEvent.class);
   private final Handler handler = new HandlerImpl();
+  private final Reply reply = mock(Reply.class);
+
+  @Mock
+  private io.github.henryssondaniel.teacup.protocol.server.Handler<? super Request> requestHandler;
 
   @BeforeEach
   void beforeEach() {
     MockitoAnnotations.initMocks(this);
+
     when(connection.getTerminalIO()).thenReturn(basicTerminalIO);
+    when(reply.getData()).thenReturn(new byte[] {(byte) 1});
   }
 
   @Test
@@ -68,22 +76,14 @@ class HandlerImplTest {
   void run() throws IOException {
     when(basicTerminalIO.read()).thenReturn(1, -1);
 
-    var reply = mock(Reply.class);
-    when(reply.getData()).thenReturn(new byte[] {(byte) 1});
-
+    handler.setHandler(requestHandler);
     handler.setReply(reply);
     handler.run(connection);
 
-    verify(basicTerminalIO).flush();
-    verify(basicTerminalIO, times(2)).read();
-    verify(basicTerminalIO).write((byte) 1);
-    verifyNoMoreInteractions(basicTerminalIO);
+    verifyRun();
 
-    verify(connection).getTerminalIO();
-    verifyNoMoreInteractions(connection);
-
-    verify(reply).getData();
-    verifyNoMoreInteractions(reply);
+    verify(requestHandler).addRequest(any(Request.class));
+    verifyNoMoreInteractions(requestHandler);
   }
 
   @Test
@@ -100,10 +100,31 @@ class HandlerImplTest {
   }
 
   @Test
-  void setAndGetReply() {
-    var reply = mock(Reply.class);
-    handler.setReply(reply);
+  void runWhenNoHandler() throws IOException {
+    when(basicTerminalIO.read()).thenReturn(1, -1);
 
+    handler.setReply(reply);
+    handler.run(connection);
+
+    verifyRun();
+  }
+
+  @Test
+  void setAndGetReply() {
+    handler.setReply(reply);
     assertThat(handler.getReply()).isSameAs(reply);
+  }
+
+  private void verifyRun() throws IOException {
+    verify(basicTerminalIO).flush();
+    verify(basicTerminalIO, times(2)).read();
+    verify(basicTerminalIO).write((byte) 1);
+    verifyNoMoreInteractions(basicTerminalIO);
+
+    verify(connection).getTerminalIO();
+    verifyNoMoreInteractions(connection);
+
+    verify(reply).getData();
+    verifyNoMoreInteractions(reply);
   }
 }

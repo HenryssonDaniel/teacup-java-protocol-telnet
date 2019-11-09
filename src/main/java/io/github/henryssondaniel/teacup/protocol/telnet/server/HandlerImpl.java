@@ -12,7 +12,7 @@ import net.wimpi.telnetd.net.ConnectionEvent;
 class HandlerImpl implements Handler {
   private static final Logger LOGGER =
       io.github.henryssondaniel.teacup.core.logging.Factory.getLogger(HandlerImpl.class);
-  private io.github.henryssondaniel.teacup.protocol.server.Handler<Request> handler;
+  private io.github.henryssondaniel.teacup.protocol.server.Handler<? super Request> handler;
   private Reply reply;
 
   @Override
@@ -55,7 +55,7 @@ class HandlerImpl implements Handler {
 
   @Override
   public void setHandler(
-      io.github.henryssondaniel.teacup.protocol.server.Handler<Request> handler) {
+      io.github.henryssondaniel.teacup.protocol.server.Handler<? super Request> handler) {
     this.handler = handler;
   }
 
