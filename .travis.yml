@@ -19,7 +19,6 @@ install: true
 language: java
 matrix:
   allow_failures:
-    - jdk: openjdk13
     - jdk: openjdk-ea
   include:
     - jdk: openjdk11
