@@ -43,6 +43,10 @@ task sourcesJar(type: Jar) {
 check.dependsOn integrationTest
 jacocoTestReport.dependsOn integrationTestReport
 
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
 tasks.withType(Test) {
     useJUnitPlatform()
 
@@ -59,8 +63,8 @@ configurations {
 dependencies {
     api 'io.github.henryssondaniel.teacup:core:1.1.5-SNAPSHOT'
     api 'io.github.henryssondaniel.teacup:protocol:1.0.0-SNAPSHOT'
-    compile 'commons-net:commons-net:3.6'
-    compile 'net.wimpi:telnetd-x:2.1.1'
+    implementation 'commons-net:commons-net:3.6'
+    implementation 'net.wimpi:telnetd-x:2.1.1'
     testImplementation 'org.assertj:assertj-core:3.14.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0-M1'
     testImplementation 'org.mockito:mockito-core:3.1.0'
