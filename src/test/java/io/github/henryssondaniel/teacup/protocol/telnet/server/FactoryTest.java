@@ -43,13 +43,13 @@ class FactoryTest {
 
   @Test
   void createSimpleServer() {
-    assertThat(Factory.createSimpleServer(listener)).isExactlyInstanceOf(Simple.class);
+    assertThat(Factory.createSimpleServer(listener)).isExactlyInstanceOf(SimpleImpl.class);
     verifyListener(listener);
   }
 
   @Test
   void createSimpleServerWhenBootException() {
-    assertThat(Factory.createSimpleServer(listener, "vt100")).isExactlyInstanceOf(Simple.class);
+    assertThat(Factory.createSimpleServer(listener, "vt100")).isExactlyInstanceOf(SimpleImpl.class);
     verifyListener(listener);
   }
 

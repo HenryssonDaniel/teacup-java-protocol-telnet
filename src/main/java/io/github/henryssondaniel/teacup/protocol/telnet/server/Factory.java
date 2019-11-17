@@ -125,7 +125,7 @@ public enum Factory {
           bootException);
     }
 
-    return new Simple(handler, telnetD);
+    return new SimpleImpl(handler, telnetD);
   }
 
   private static ConnectionManager createConnectionManager(Listener listener, Shell handler) {

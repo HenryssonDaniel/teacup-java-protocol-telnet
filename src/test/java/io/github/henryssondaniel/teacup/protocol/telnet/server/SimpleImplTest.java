@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-class SimpleTest {
+class SimpleImplTest {
   private final Context context = mock(Context.class);
   private final Handler handler = mock(Handler.class);
   private final Reply reply = mock(Reply.class);
   private final TelnetD telnetD = mock(TelnetD.class);
-  private final Simple simple = new Simple(handler, telnetD);
+  private final SimpleBase simpleBase = new SimpleImpl(handler, telnetD);
 
   @Mock private io.github.henryssondaniel.teacup.protocol.server.Handler<Request> requestHandler;
 
@@ -30,7 +30,7 @@ class SimpleTest {
 
   @Test
   void createProtocolContext() {
-    assertThat(simple.createProtocolContext(context, requestHandler)).isNotNull();
+    assertThat(simpleBase.createProtocolContext(context, requestHandler)).isNotNull();
 
     verify(context).getReply();
     verifyNoMoreInteractions(context);
@@ -45,7 +45,7 @@ class SimpleTest {
 
   @Test
   void getKey() {
-    assertThat(simple.getKey(context)).isEqualTo("key");
+    assertThat(simpleBase.getKey(context)).isEqualTo("key");
 
     verifyNoInteractions(context);
     verifyNoInteractions(handler);
@@ -56,7 +56,7 @@ class SimpleTest {
   void isEquals() {
     when(handler.getReply()).thenReturn(reply);
 
-    assertThat(simple.isEquals(context, handler)).isTrue();
+    assertThat(simpleBase.isEquals(context, handler)).isTrue();
 
     verify(context).getReply();
     verifyNoMoreInteractions(context);
@@ -69,7 +69,7 @@ class SimpleTest {
 
   @Test
   void serverCleanup() {
-    simple.serverCleanup(handler);
+    simpleBase.serverCleanup(handler);
 
     verify(handler).setReply(null);
     verifyNoMoreInteractions(handler);
@@ -79,7 +79,7 @@ class SimpleTest {
 
   @Test
   void setUp() {
-    simple.setUp();
+    simpleBase.setUp();
 
     verifyNoInteractions(handler);
 
@@ -89,7 +89,7 @@ class SimpleTest {
 
   @Test
   void tearDown() {
-    simple.tearDown();
+    simpleBase.tearDown();
 
     verifyNoInteractions(handler);
 
