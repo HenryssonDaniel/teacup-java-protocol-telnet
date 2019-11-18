@@ -16,5 +16,5 @@ Add this repository as a dependency.
 The Client interface holds all the functionality that the Telnet client can do.  
 New clients can be created with the Factory class in the client package.
 
-The SimpleServer interface holds all the functionality that the Telnet server can do.  
+The Simple interface holds all the functionality that the Telnet server can do.  
 New servers can be created with the Factory class in the server package.
